@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wall Mount app html</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+<div class="content">
+  <div id="wm"></div>
+</div>
+
+<!--
+<div id="wm">
+    <div class="wm-container">
+        <img class="wm-bg" />
+        <img class="wm-front" />
+        <div class="wm-bg-width-helper"></div>
+        <div class="wm-bg-height-helper"></div>
+    </div>
+    <div class="wm-menu">
+        <div class="row">
+            <button class="wm-bg-change" data-wm-bg-prev>Prev wall</button>
+            <button class="wm-bg-change" data-wm-bg-next>Next wall</button>
+            <button class="wm-remove-local" disabled>Remove wall</button>
+            <button class="wm-front-change" data-wm-front-prev>Prev image</button>
+            <button class="wm-front-change" data-wm-front-next>Next image</button>
+        </div>
+        <div class="row">
+            <label>
+                Upload your wall
+                <input class="wm-local-img" type="file" accept="image/*" capture @change="setImage"/>
+            </label>
+        </div>
+        <div class="row">
+            <label>Units</label>
+            <select data-units>
+                <option>cm</option>
+                <option>inches</option>
+            </select>
+        </div>
+        <div class="wm-wall-dimensions row">
+            <label>
+                Wall width
+                <input class="wm-local-width" type="range" min="100" max="1000" value="0" />
+                <span class="wm-local-width-value">0</span>
+            </label>
+            <label>
+                Wall height
+                <input class="wm-local-height" type="range" min="100" max="704" value="0" />
+                <span class="wm-local-height-value">0</span>
+            </label>
+        </div>
+        <div class="wm-wall-dimensions row">
+            <span>Wall dimensions: <span class="wm-bg-width"></span> x <span class="wm-bg-height"></span></span>
+        </div>
+        <div class="row">
+            <span>Image dimensions: <span class="wm-front-width"></span> x <span class="wm-front-height"></span></span>
+        </div>
+        <div class="row">
+            <label>
+                Picture offset X (%)
+                <input class="wm-local-offset-x" type="range" min="0" max="100" value="0" />
+                <span class="wm-local-offset-x-value">0</span>
+            </label>
+            <label>
+                Picture offset Y (%)
+                <input class="wm-local-offset-y" type="range" min="0" max="100" value="0" />
+                <span class="wm-local-offset-y-value">0</span>
+            </label>
+        </div>
+        <hr />
+        <div class="row">
+            <span>Walls:</span>
+            <ul class="wm-bg-images"></ul>
+            <span>Images:</span>
+            <ul class="wm-front-images"></ul>
+        </div>
+    </div>
+</div>
+-->
+
+<script src="assets/js/library.js"></script>
+<script>
+  const bgImgsArray = [
+    {
+      src: "https://restyledhomes.blog/wp-content/uploads/2019/12/Display-a-map-in-your-living-room-1.jpg",
+      srcThumb: "https://restyledhomes.blog/wp-content/uploads/2019/12/Display-a-map-in-your-living-room-1.jpg?v=2",
+      width: 340,
+      height: 230,
+      startX: 10,
+      startY: 50
+    },
+    {
+      src: "https://i.pinimg.com/originals/48/70/43/487043d870a01d84cc264c2f81f89ddd.jpg",
+      srcThumb: "https://i.pinimg.com/originals/48/70/43/487043d870a01d84cc264c2f81f89ddd.jpg?v=213",
+      width: 300,
+      height: 240,
+      startX: 30,
+      startY: 70
+    },
+    {
+      src: "https://www.bergerpaints.com/blog/wp-content/uploads/2019/09/Walls-stains-1280x720.png",
+      width: 370,
+      height: 190,
+      startX: 20,
+      startY: 75
+    }
+  ];
+  const frontImgsArray = [
+    {
+      src: "https://cdn.shopify.com/s/files/1/0284/4276/products/AttractionNo.1_300x.jpg?v=1596123493",
+      width: 100,
+      height: 100
+    },
+    {
+      src: "https://cdn.shopify.com/s/files/1/0284/4276/products/20190507_111246_300x.jpg?v=1589641264",
+      width: 90,
+      height: 60
+    },
+    {
+      src: "https://cdn.shopify.com/s/files/1/0284/4276/products/Bildschirmfoto_2019-01-02_um_16.58.42_300x.png?v=1589641265",
+      width: 110,
+      height: 80
+    }
+  ];
+  window.wmount.init({
+    bgImgs: bgImgsArray,
+    frontImgs: frontImgsArray,
+    startX: 20,
+    startY: 50,
+    units: 'cm',
+    borderOpacity: .2,
+    uploadCustomWall: true,
+    debug: true
+  })
+
+/*
+  [Options]
+
+  bgImgs: (array), Array of objects in format: src, width, height, srcThumb (optional)
+  frontImgs: (array), Array of objects in format: src, width, height
+  startX (optional): (integer), Percentage from 1 to 100, Default 0
+  startY (optional): (integer), Percentage from 1 to 100, Default 0
+  units (optional): (string), "cm" or "inches", Default "cm"
+  borderOpacity (optional): (float), From 0 to 1, Default 0.2
+  uploadCustomWall (optional): (bool), Default false
+  debug (optional): (bool), Default false
+*/
+</script>
+</body>
+</html>
