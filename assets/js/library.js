@@ -13,7 +13,8 @@
     wmFront = null,
     wmBgChange = null,
     wmFrontChange = null,
-    wmRemoveLocal = null,
+    wmRemoveLocalBg = null,
+    wmRemoveLocalFront = null,
     wmLocalUpload = null,
     wmFrontWidth = null,
     wmFrontHeight = null,
@@ -29,6 +30,7 @@
     wmFrontImagesList = null,
     wmUnitsChange = null,
     wmWallDimension = null,
+    wmFrontAdd = null,
     units = 'cm',
     origUnits = 'cm',
     borderOpacity = 1,
@@ -88,6 +90,11 @@
       bgImgs = bgImgs.concat(localBgImages);
     }
 
+    let localFrontImages = getLocalImages('front');
+    if (localFrontImages.length) {
+      frontImgs = frontImgs.concat(localFrontImages);
+    }
+
     createDOM();
     loadDOM();
     attachEventListeners();
@@ -108,8 +115,8 @@
       uploadCustomWallInputsHtml = `<div class="wm-wall-dimensions row"><label>Wall width<input class="wm-local-width" type="range" min="100" max="1000" value="0" /><span class="wm-local-width-value">0</span></label></div><div class="wm-wall-dimensions row"><label>Wall height<input class="wm-local-height" type="range" min="100" max="1000" value="0" /><span class="wm-local-height-value">0</span></label></div>`;
     }
     if (frontImgs.length > 1)
-      frontPrevNextHtml = `<button class="wm-front-change" data-wm-front-prev>Prev image</button><button class="wm-front-change" data-wm-front-next>Next image</button>`;
-    let html = `<div class="wm-container"><img class="wm-bg" alt="Wall image" src="" /><img class="wm-front" alt="Preview image" src="" /><div class="wm-bg-width-helper"></div><div class="wm-bg-height-helper"></div></div><div class="wm-menu"><div class="row"><button class="wm-bg-change" data-wm-bg-prev>Prev wall</button><button class="wm-bg-change" data-wm-bg-next>Next wall</button><button class="wm-remove-local" disabled>Remove wall</button>${frontPrevNextHtml}</div><div class="row"></div>${uploadCustomWallHtml}<div class="row"><label>Units</label><select data-units><option${(units === 'cm' ? ' selected' : '')}>cm</option><option${(units === 'inches' ? ' selected' : '')}>inches</option></select></div></div>${uploadCustomWallInputsHtml}<div class="row"><span>Wall dimensions: <span class="wm-bg-width"></span> x <span class="wm-bg-height"></span></span></div><div class="row"><span>Image dimensions: <span class="wm-front-width"></span> x <span class="wm-front-height"></span></span></div>`;
+      frontPrevNextHtml = `<button class="wm-front-change" data-wm-front-prev>Prev image</button><button class="wm-front-change" data-wm-front-next>Next image</button><button class="wm-remove-local-front" disabled>Remove front</button>`;
+    let html = `<div class="wm-container"><img class="wm-bg" alt="Wall image" src="" /><img class="wm-front" alt="Preview image" src="" /><div class="wm-bg-width-helper"></div><div class="wm-bg-height-helper"></div></div><div class="wm-menu"><div class="row"><button class="wm-bg-change" data-wm-bg-prev>Prev wall</button><button class="wm-bg-change" data-wm-bg-next>Next wall</button><button class="wm-remove-local-bg" disabled>Remove wall</button>${frontPrevNextHtml}</div><div class="row"></div>${uploadCustomWallHtml}<div class="row"><label>Units</label><select data-units><option${(units === 'cm' ? ' selected' : '')}>cm</option><option${(units === 'inches' ? ' selected' : '')}>inches</option></select></div></div>${uploadCustomWallInputsHtml}<div class="row"><span>Wall dimensions: <span class="wm-bg-width"></span> x <span class="wm-bg-height"></span></span></div><div class="row"><span>Image dimensions: <span class="wm-front-width"></span> x <span class="wm-front-height"></span></span></div>`;
     let debug_html = `
             <hr /><div class="row"><span>Walls:</span><ul class="wm-bg-images"></ul><span>Images:</span><ul class="wm-front-images"></ul></div>`;
     if (debug) {
@@ -126,7 +133,8 @@
     wmFront = document.querySelector('#wm .wm-front');
     wmBgChange = document.querySelectorAll('#wm .wm-bg-change');
     wmFrontChange = document.querySelectorAll('#wm .wm-front-change');
-    wmRemoveLocal = document.querySelector('#wm .wm-remove-local');
+    wmRemoveLocalBg = document.querySelector('#wm .wm-remove-local-bg');
+    wmRemoveLocalFront = document.querySelector('#wm .wm-remove-local-front');
     wmLocalUpload = document.querySelector('#wm .wm-local-img');
     wmFrontWidth = document.querySelector('#wm .wm-front-width');
     wmFrontHeight = document.querySelector('#wm .wm-front-height');
@@ -142,6 +150,7 @@
     wmFrontImagesList = document.querySelector('#wm .wm-front-images');
     wmUnitsChange = document.querySelector('#wm select[data-units]');
     wmWallDimension = document.querySelectorAll('#wm .wm-wall-dimensions');
+    wmFrontAdd = document.querySelector('[data-wm-front-add]');
   }
 
   const attachEventListeners = () => {
@@ -266,6 +275,42 @@
       updateUnits(this.options[this.selectedIndex].value);
     });
 
+    // Add front image button
+    wmFrontAdd.addEventListener('click', function() {
+      let frontImage,
+          image,
+          id,
+          found = false;
+
+      id = this.getAttribute('data-wm-front-add');
+      frontImage = document.querySelector('[data-wm-front-id='+id+']');
+
+      if (!frontImage) {
+        return;
+      }
+
+      frontImgs.forEach(function (img) {
+        if (img.src === frontImage.src) {
+          found = true;
+        }
+      })
+
+      if (found) {
+        return;
+      }
+
+      image = {
+        src: frontImage.src,
+        width: frontImage.getAttribute('data-fm-front-width'),
+        height: frontImage.getAttribute('data-wm-front-height'),
+        isDynamic: true
+      }
+
+      console.log(image);
+
+      _addFrontImage(image);
+    });
+
     window.onresize = function() {
       scaleRatio();
       calcBonds();
@@ -275,8 +320,9 @@
     // Touch support
     wm.addEventListener('click', prevNextHandler, true);
     // wm.addEventListener('touchstart', prevNextHandler, true);
-    wmRemoveLocal.addEventListener('click', wmRemoveLocalHandler, true);
-    // wmRemoveLocal.addEventListener('touchstart', wmRemoveLocalHandler, true);
+    wmRemoveLocalBg.addEventListener('click', wmRemoveLocalBgHandler, true);
+    // wmRemoveLocalBg.addEventListener('touchstart', wmRemoveLocalHandler, true);
+    wmRemoveLocalFront.addEventListener('click', wmRemoveLocalFrontHandler, true);
     wmFront.addEventListener('touchstart', touchHandler, true);
     wmFront.addEventListener('touchmove', touchHandler, true);
     wmFront.addEventListener('touchend', touchHandler, true);
@@ -358,7 +404,7 @@
     imgsListDom.innerHTML = html;
   }
 
-  let updateImage = (type, direction) => {
+  let updateImage = (type, direction, last) => {
     let image = null,
       imgs = null,
       imgsListDom = null,
@@ -421,19 +467,26 @@
       }
     }
 
-    let index = first ? 0 : getNextImageIndex(type, direction);
+    let index = first ? 0 : getImageIndex(type, direction, last);
     if (type === 'bg') {
       if (!imgs[index].src.startsWith('data')) {
-        wmRemoveLocal.setAttribute('disabled', 'disabled');
+        wmRemoveLocalBg.setAttribute('disabled', 'disabled');
         wmWallDimension.forEach((e) => {
           e.classList.add('hide');
         });
       }
       else {
-        wmRemoveLocal.removeAttribute('disabled');
+        wmRemoveLocalBg.removeAttribute('disabled');
         wmWallDimension.forEach((e) => {
           e.classList.remove('hide');
         });
+      }
+    } else if (type === 'front') {
+      if (imgs[index].isDynamic) {
+        wmRemoveLocalFront.removeAttribute('disabled');
+      }
+      else {
+        wmRemoveLocalFront.setAttribute('disabled', 'disabled');
       }
     }
     newImage.src = imgs[index].src;
@@ -442,16 +495,19 @@
 
   let getCurrentImageIndex = (type) => {
     let index = null,
-      imgs = [];
+      imgs = [],
+      wmImg = null;
 
     if (type === 'bg') {
       imgs = bgImgs;
+      wmImg = wmBg;
     } else {
       imgs = frontImgs;
+      wmImg = wmFront;
     }
 
     imgs.forEach(function(img, i) {
-      if (img.src === wmBg.src) {
+      if (img.src === wmImg.src) {
         index = i;
       }
     });
@@ -459,7 +515,7 @@
     return index;
   }
 
-  let getNextImageIndex = (type, direction) => {
+  let getImageIndex = (type, direction, last = null) => {
     let index = 0,
       selectedImg = null,
       imgs = [];
@@ -477,6 +533,10 @@
         index = i;
       }
     });
+
+    if (last) {
+      return imgs.length - 1;
+    }
 
     if (direction === 'prev') {
       index--;
@@ -559,7 +619,7 @@
         addLocalImage(localBgImage, 'bg');
 
         wmContainer.style.height = wmBg.height + "px";
-        wmRemoveLocal.removeAttribute('disabled');
+        wmRemoveLocalBg.removeAttribute('disabled');
 
         scaleRatio();
         calcBonds();
@@ -683,7 +743,7 @@
     event.preventDefault();
   }
 
-  let wmRemoveLocalHandler = (event) => {
+  let wmRemoveLocalBgHandler = () => {
     let index = getCurrentImageIndex('bg');
     let localImagesIndex = index - bgImgs.length;
 
@@ -693,6 +753,20 @@
 
     if (debug) {
       let imgToRemove = wmBgImagesList.querySelectorAll('li')[index];
+      imgToRemove.parentNode.removeChild(imgToRemove);
+    }
+  }
+
+  let wmRemoveLocalFrontHandler = () => {
+    let index = getCurrentImageIndex('front');
+    let localImagesIndex = index - frontImgs.length;
+
+    frontImgs.splice(index, 1);
+    removeLocalImage(localImagesIndex, 'front');
+    updateImage('front');
+
+    if (debug) {
+      let imgToRemove = wmFrontImagesList.querySelectorAll('li')[index];
       imgToRemove.parentNode.removeChild(imgToRemove);
     }
   }
@@ -794,7 +868,18 @@
     }
     image.origWidth = image.width;
     image.origHeight = image.height;
+    image.isDynamic = true;
     frontImgs.push(image);
+    addLocalImage(image, 'front');
+    updateImage('front', null, true);
+    showImagesList('front');
+
+    if (debug) {
+      let selected = wmFrontImagesList.querySelector('li.selected');
+      if (selected) selected.classList.remove('selected');
+      selected = wmFrontImagesList.querySelector('li:last-child');
+      if (selected)  selected.classList.add('selected');
+    }
   }
 
   window.wmount = {

@@ -183,12 +183,14 @@ body.dragging {
     height: 100px;
     display: block;
 }
-button.wm-remove-local {
+button.wm-remove-local-bg,
+button.wm-remove-local-front {
     background: #f28e8e;
     border-color: #c46060;
     color: #9e4040;
 }
-button.wm-remove-local[disabled] {
+button.wm-remove-local-bg[disabled],
+button.wm-remove-local-front[disabled] {
     display: none;
 }
 .wm-local-width,
