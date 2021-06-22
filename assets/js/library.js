@@ -1,6 +1,6 @@
 (function(window){
-  let bgImgs = null,
-    frontImgs = null,
+  let bgImgs = [],
+    frontImgs = [],
     bgDefaultImagesLength = 0,
     boundsWidth = 0,
     boundsHeight = 0,
@@ -92,6 +92,14 @@
 
     let localFrontImages = getLocalImages('front');
     if (localFrontImages.length) {
+      frontImgs.forEach(function(frontImg) {
+        localFrontImages.forEach(function(localImg) {
+          if (frontImg.src === localImg.src) {
+            frontImg.isDuplicate = true;
+          }
+        })
+      });
+
       frontImgs = frontImgs.concat(localFrontImages);
     }
 
@@ -114,7 +122,7 @@
       uploadCustomWallHtml = `<div class="row"><label>Upload your wall<input class="wm-local-img" type="file" accept="image/*" capture @change="setImage"/></label></div>`
       uploadCustomWallInputsHtml = `<div class="wm-wall-dimensions row"><label>Wall width<input class="wm-local-width" type="range" min="100" max="1000" value="0" /><span class="wm-local-width-value">0</span></label></div><div class="wm-wall-dimensions row"><label>Wall height<input class="wm-local-height" type="range" min="100" max="1000" value="0" /><span class="wm-local-height-value">0</span></label></div>`;
     }
-    if (frontImgs.length > 1)
+    if (frontImgs.length > 0)
       frontPrevNextHtml = `<button class="wm-front-change" data-wm-front-prev>Prev image</button><button class="wm-front-change" data-wm-front-next>Next image</button><button class="wm-remove-local-front" disabled>Remove front</button>`;
     let html = `<div class="wm-container"><img class="wm-bg" alt="Wall image" src="" /><img class="wm-front" alt="Preview image" src="" /><div class="wm-bg-width-helper"></div><div class="wm-bg-height-helper"></div></div><div class="wm-menu"><div class="row"><button class="wm-bg-change" data-wm-bg-prev>Prev wall</button><button class="wm-bg-change" data-wm-bg-next>Next wall</button><button class="wm-remove-local-bg" disabled>Remove wall</button>${frontPrevNextHtml}</div><div class="row"></div>${uploadCustomWallHtml}<div class="row"><label>Units</label><select data-units><option${(units === 'cm' ? ' selected' : '')}>cm</option><option${(units === 'inches' ? ' selected' : '')}>inches</option></select></div></div>${uploadCustomWallInputsHtml}<div class="row"><span>Wall dimensions: <span class="wm-bg-width"></span> x <span class="wm-bg-height"></span></span></div><div class="row"><span>Image dimensions: <span class="wm-front-width"></span> x <span class="wm-front-height"></span></span></div>`;
     let debug_html = `
@@ -277,36 +285,12 @@
 
     // Add front image button
     wmFrontAdd.addEventListener('click', function() {
-      let frontImage,
-          image,
-          id,
-          found = false;
+      let index = getCurrentImageIndex('front');
+      let image = JSON.parse(JSON.stringify(frontImgs[index]));
 
-      id = this.getAttribute('data-wm-front-add');
-      frontImage = document.querySelector('[data-wm-front-id='+id+']');
-
-      if (!frontImage) {
+      if (typeof image.isDynamic !== 'undefined') {
         return;
       }
-
-      frontImgs.forEach(function (img) {
-        if (img.src === frontImage.src) {
-          found = true;
-        }
-      })
-
-      if (found) {
-        return;
-      }
-
-      image = {
-        src: frontImage.src,
-        width: frontImage.getAttribute('data-fm-front-width'),
-        height: frontImage.getAttribute('data-wm-front-height'),
-        isDynamic: true
-      }
-
-      console.log(image);
 
       _addFrontImage(image);
     });
@@ -319,9 +303,7 @@
 
     // Touch support
     wm.addEventListener('click', prevNextHandler, true);
-    // wm.addEventListener('touchstart', prevNextHandler, true);
     wmRemoveLocalBg.addEventListener('click', wmRemoveLocalBgHandler, true);
-    // wmRemoveLocalBg.addEventListener('touchstart', wmRemoveLocalHandler, true);
     wmRemoveLocalFront.addEventListener('click', wmRemoveLocalFrontHandler, true);
     wmFront.addEventListener('touchstart', touchHandler, true);
     wmFront.addEventListener('touchmove', touchHandler, true);
@@ -330,12 +312,12 @@
     wmFront.addEventListener('touchstart', mobileDevice);
   }
 
-  const calcHeight = (width) => {
+  const calcHeight = () => {
     let widthRatio = wmBg.width / wmBg.getAttribute('data-wmwidth');
     return parseInt(wmBg.height / widthRatio);
   }
 
-  const calcWidth = (height) => {
+  const calcWidth = () => {
     let heightRatio = wmBg.height / wmBg.getAttribute('data-wmheight');
     return parseInt(wmBg.width / heightRatio);
   }
@@ -468,6 +450,7 @@
     }
 
     let index = first ? 0 : getImageIndex(type, direction, last);
+
     if (type === 'bg') {
       if (!imgs[index].src.startsWith('data')) {
         wmRemoveLocalBg.setAttribute('disabled', 'disabled');
@@ -489,6 +472,7 @@
         wmRemoveLocalFront.setAttribute('disabled', 'disabled');
       }
     }
+
     newImage.src = imgs[index].src;
     dragElement(wmFront);
   }
@@ -516,9 +500,10 @@
   }
 
   let getImageIndex = (type, direction, last = null) => {
-    let index = 0,
+    let index = -1,
       selectedImg = null,
-      imgs = [];
+      imgs = [],
+      isDynamic = true;
 
     if (type === 'front') {
       selectedImg = wmFront;
@@ -528,22 +513,35 @@
       imgs = bgImgs;
     }
 
-    imgs.forEach(function(img, i) {
-      if (img.src === selectedImg.src) {
+    for (let i = imgs.length - 1; i >= 0; i--) {
+      if (imgs[i].src === selectedImg.src) {
         index = i;
+        break;
       }
-    });
-
-    if (last) {
-      return imgs.length - 1;
     }
 
-    if (direction === 'prev') {
-      index--;
-      if (index < 0) index = imgs.length - 1;
+    if (last) {
+      index = imgs.length - 1;
     } else {
-      index++;
-      if (index > imgs.length - 1) index = 0;
+      let counter = 0;
+      while (isDynamic && counter < 100) {
+        if (direction === 'prev') {
+          index--;
+          if (index < 0) {
+            index = imgs.length - 1;
+          }
+        } else {
+          index++;
+          if (index > imgs.length - 1) {
+            index = 0;
+          }
+        }
+
+        if (typeof imgs[index].isDuplicate === 'undefined') {
+          isDynamic = false;
+        }
+        counter++;
+      }
     }
 
     return index;
@@ -761,6 +759,12 @@
     let index = getCurrentImageIndex('front');
     let localImagesIndex = index - frontImgs.length;
 
+    frontImgs.forEach(function(frontImg) {
+      if (frontImgs[index].src === frontImg.src) {
+        delete frontImg.isDuplicate;
+      }
+    });
+
     frontImgs.splice(index, 1);
     removeLocalImage(localImagesIndex, 'front');
     updateImage('front');
@@ -798,8 +802,10 @@
     if (type !== 'bg' && type !== 'front') {
       return false;
     }
+
     let typeString = 'localImages_' + type;
     let localImages = getLocalImages(type);
+
     localImages.push(localImage);
     localStorage.setItem(typeString, JSON.stringify(localImages));
     return true;
@@ -852,7 +858,9 @@
   }
 
   let _addFrontImage = (image) => {
-    let error;
+    let error,
+        found = false;
+
     if (typeof image.width === 'undefined') {
       error = 'Width not set';
     }
@@ -866,9 +874,27 @@
       console.log(error);
       return;
     }
+
+    frontImgs.forEach(function (frontImg) {
+      if (frontImg.src === image.src && typeof frontImg.isDuplicate !== 'undefined') {
+        found = true;
+      }
+    })
+
+    if (found) {
+      return;
+    }
+
     image.origWidth = image.width;
     image.origHeight = image.height;
     image.isDynamic = true;
+
+    frontImgs.forEach(function (frontImg) {
+      if (frontImg.src === image.src) {
+        frontImg.isDuplicate = true;
+      }
+    });
+
     frontImgs.push(image);
     addLocalImage(image, 'front');
     updateImage('front', null, true);
