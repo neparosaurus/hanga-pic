@@ -190,7 +190,8 @@ button.wm-remove-local-front {
     color: #9e4040;
 }
 button.wm-remove-local-bg[disabled],
-button.wm-remove-local-front[disabled] {
+button.wm-remove-local-front[disabled],
+button.wm-add-local-front[disabled]{
     display: none;
 }
 .wm-local-width,

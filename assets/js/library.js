@@ -15,6 +15,7 @@
     wmFrontChange = null,
     wmRemoveLocalBg = null,
     wmRemoveLocalFront = null,
+    wmAddFront = null,
     wmLocalUpload = null,
     wmFrontWidth = null,
     wmFrontHeight = null,
@@ -30,7 +31,6 @@
     wmFrontImagesList = null,
     wmUnitsChange = null,
     wmWallDimension = null,
-    wmFrontAdd = null,
     units = 'cm',
     origUnits = 'cm',
     borderOpacity = 1,
@@ -123,7 +123,7 @@
       uploadCustomWallInputsHtml = `<div class="wm-wall-dimensions row"><label>Wall width<input class="wm-local-width" type="range" min="100" max="1000" value="0" /><span class="wm-local-width-value">0</span></label></div><div class="wm-wall-dimensions row"><label>Wall height<input class="wm-local-height" type="range" min="100" max="1000" value="0" /><span class="wm-local-height-value">0</span></label></div>`;
     }
     if (frontImgs.length > 0)
-      frontPrevNextHtml = `<button class="wm-front-change" data-wm-front-prev>Prev image</button><button class="wm-front-change" data-wm-front-next>Next image</button><button class="wm-remove-local-front" disabled>Remove front</button>`;
+      frontPrevNextHtml = `<button class="wm-front-change" data-wm-front-prev>Prev image</button><button class="wm-front-change" data-wm-front-next>Next image</button><button class="wm-add-local-front">Add to compare</button><button class="wm-remove-local-front" disabled>Remove from compare</button>`;
     let html = `<div class="wm-container"><img class="wm-bg" alt="Wall image" src="" /><img class="wm-front" alt="Preview image" src="" /><div class="wm-bg-width-helper"></div><div class="wm-bg-height-helper"></div></div><div class="wm-menu"><div class="row"><button class="wm-bg-change" data-wm-bg-prev>Prev wall</button><button class="wm-bg-change" data-wm-bg-next>Next wall</button><button class="wm-remove-local-bg" disabled>Remove wall</button>${frontPrevNextHtml}</div><div class="row"></div>${uploadCustomWallHtml}<div class="row"><label>Units</label><select data-units><option${(units === 'cm' ? ' selected' : '')}>cm</option><option${(units === 'inches' ? ' selected' : '')}>inches</option></select></div></div>${uploadCustomWallInputsHtml}<div class="row"><span>Wall dimensions: <span class="wm-bg-width"></span> x <span class="wm-bg-height"></span></span></div><div class="row"><span>Image dimensions: <span class="wm-front-width"></span> x <span class="wm-front-height"></span></span></div>`;
     let debug_html = `
             <hr /><div class="row"><span>Walls:</span><ul class="wm-bg-images"></ul><span>Images:</span><ul class="wm-front-images"></ul></div>`;
@@ -158,7 +158,7 @@
     wmFrontImagesList = document.querySelector('#wm .wm-front-images');
     wmUnitsChange = document.querySelector('#wm select[data-units]');
     wmWallDimension = document.querySelectorAll('#wm .wm-wall-dimensions');
-    wmFrontAdd = document.querySelector('[data-wm-front-add]');
+    wmAddFront = document.querySelector('#wm .wm-add-local-front');
   }
 
   const attachEventListeners = () => {
@@ -284,7 +284,7 @@
     });
 
     // Add front image button
-    wmFrontAdd.addEventListener('click', function() {
+    wmAddFront.addEventListener('click', function() {
       let index = getCurrentImageIndex('front');
       let image = JSON.parse(JSON.stringify(frontImgs[index]));
 
@@ -467,9 +467,11 @@
     } else if (type === 'front') {
       if (imgs[index].isDynamic) {
         wmRemoveLocalFront.removeAttribute('disabled');
+        wmAddFront.setAttribute('disabled', 'disabled');
       }
       else {
         wmRemoveLocalFront.setAttribute('disabled', 'disabled');
+        wmAddFront.removeAttribute('disabled');
       }
     }
 
