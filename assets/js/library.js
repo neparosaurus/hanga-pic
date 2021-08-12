@@ -117,9 +117,12 @@
 
   // Create DOM elements on page
   const createDOM = () => {
-    let uploadCustomWallHtml = uploadCustomWallInputsHtml = frontPrevNextHtml = ``;
+    let uploadCustomWallHtml = '',
+        uploadCustomWallInputsHtml = '',
+        frontPrevNextHtml = ``;
+
     if (uploadCustomWall) {
-      uploadCustomWallHtml = `<div class="row"><label>Upload your wall<input class="wm-local-img" type="file" accept="image/*" capture @change="setImage"/></label></div>`
+      uploadCustomWallHtml = `<div class="row"><label>Upload your wall<input class="wm-local-img" type="file" accept="image/*" @change="setImage" capture /></label></div>`
       uploadCustomWallInputsHtml = `<div class="wm-wall-dimensions row"><label>Wall width<input class="wm-local-width" type="range" min="100" max="1000" value="0" /><span class="wm-local-width-value">0</span></label></div><div class="wm-wall-dimensions row"><label>Wall height<input class="wm-local-height" type="range" min="100" max="1000" value="0" /><span class="wm-local-height-value">0</span></label></div>`;
     }
     if (frontImgs.length > 0)
@@ -481,7 +484,7 @@
 
   let getCurrentImageIndex = (type) => {
     let index = null,
-      imgs = [],
+      imgs,
       wmImg = null;
 
     if (type === 'bg') {
@@ -503,8 +506,8 @@
 
   let getImageIndex = (type, direction, last = null) => {
     let index = -1,
-      selectedImg = null,
-      imgs = [],
+      selectedImg,
+      imgs,
       isDynamic = true;
 
     if (type === 'front') {
@@ -558,8 +561,8 @@
         maxWidth = wmLocalWidth.max,
         minHeight = wmLocalHeight.min,
         maxHeight = wmLocalHeight.max,
-        formattedWidth = '',
-        formattedHeight = '';
+        formattedWidth,
+        formattedHeight;
 
     if (bgWidth >= maxWidth) {
       bgWidth = maxWidth;

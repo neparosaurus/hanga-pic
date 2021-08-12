@@ -25,14 +25,14 @@ Array of images. Image should be an object with the following properties : `src`
 
 ### `init`
 
-Initialize the library in the following format:
+Initialize the library. Before initialization add `<div id="wm"></div>` on a page, then execute JavaScript command in the following format:
 
 `wmount.init(options)`
 
 Example usage:
 
 ```
-window.wmount.init({
+wmount.init({
     bgImgs: bgImgsArray,
     frontImgs: frontImgsArray,
     startX: 20,
